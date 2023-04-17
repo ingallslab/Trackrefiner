@@ -23,6 +23,11 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
     data_frame["ends"] = ''
     data_frame["strainRate"] = ''
     data_frame["strainRate_rolling"] = ''
+    data_frame["transconjugant_flag"] = ''
+    
+    # fluorescence
+    data_frame["gfp_intensity"] = ''
+    data_frame["rfp_intensity"] = ''
 
     # useful for calculation of rolling average
     window_size = 5  # time steps
@@ -75,6 +80,13 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
             end_points = find_vertex(bacterium_center_position, bacterium_features['major'],
                                      bacterium_features['orientation'])
 
+            # Fluorescence
+            data_frame.at[idx, "gfp_intensity"] = bacterium["Intensity_MeanIntensity_gfp_channel"]
+            data_frame.at[idx, "rfp_intensity"] = bacterium["Intensity_MeanIntensity_rfp_channel"]
+            
+            # Transconjugant flag
+            data_frame.at[idx, "transconjugant_flag"] = bacterium["Children_transconjugants_Count"]
+
             data_frame.at[idx, "ends"] = end_points
 
             cell_age += 1
@@ -93,6 +105,6 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
     else:
         data_frame = data_frame[
             ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate', 'strainRate_rolling']]
+             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate', 'gfp_intensity', 'rfp_intensity', 'strainRate_rolling', 'transconjugant_flag']]
 
     return data_frame
