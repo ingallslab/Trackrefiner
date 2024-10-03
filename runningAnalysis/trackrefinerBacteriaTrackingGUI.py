@@ -606,8 +606,12 @@ class TrackingGUI(tk.Tk):
         # ax.set_title("Time Step 1")
 
         # Plot bacteria objects for time step 1
-        self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
-                                    neighbor_distance, df_neighbor)
+        if specified_ids:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids.copy(), specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
+        else:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
 
         # Embed the figure into the Tkinter window with zoom functionality
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
