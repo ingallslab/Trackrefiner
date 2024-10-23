@@ -515,7 +515,9 @@ def calculate_slope_intercept_batch(df):
 # https://math.stackexchange.com/questions/426150/what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate
 # https://math.stackexchange.com/questions/2645689/what-is-the-parametric-equation-of-a-rotated-ellipse-given-the-angle-of-rotatio
 def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
-    if np.abs(angle_rotation - np.pi / 2) < angle_tolerance:  # Bacteria parallel to the vertical axis
+    
+    # Bacteria parallel to the vertical axis
+    if np.abs(angle_rotation - np.pi / 2) < angle_tolerance or np.abs(angle_rotation + np.pi / 2) < angle_tolerance:
         vertex_1_x = center[0]
         vertex_1_y = center[1] + major
         vertex_2_x = center[0]
@@ -559,7 +561,9 @@ def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
 def find_vertex_batch(df, center_coordinate_columns, angle_tolerance=1e-6):
     # condition 1
     # Bacteria parallel to the vertical axis
-    condition1 = np.abs(df["AreaShape_Orientation"] - np.pi / 2) < angle_tolerance
+    condition1 = (np.abs(df["AreaShape_Orientation"] - np.pi / 2) < angle_tolerance) | \
+                 (np.abs(df["AreaShape_Orientation"] + np.pi / 2) < angle_tolerance)
+
     df.loc[condition1, 'endpoint1_X'] = df[center_coordinate_columns['x']]
     df.loc[condition1, 'endpoint1_Y'] = df[center_coordinate_columns['y']] + df["AreaShape_MajorAxisLength"]
     df.loc[condition1, 'endpoint2_X'] = df[center_coordinate_columns['x']]
