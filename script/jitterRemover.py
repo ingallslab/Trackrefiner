@@ -11,13 +11,17 @@ def find_background_color(image):
     """
     Estimate the background color of an image.
 
-    This function estimates the background color by averaging the colors at the borders of the image.
-    It concatenates the pixel values from the top, bottom, left, and right edges and calculates their mean.
+    This function calculates the background color by averaging the pixel values along the borders of the image
+    (top, bottom, left, and right edges).
 
-    @param image numpy array The image for which to estimate the background color.
+    :param numpy.ndarray image:
+        The image for which to estimate the background color. It should be a 2D or 3D array representing
+        grayscale or color image data.
 
-    Returns:
-        numpy array: The estimated background color.
+    :returns:
+        numpy.ndarray:
+
+        The estimated background color as a single value (for grayscale) or an array (for color images).
     """
 
     # Extract the top edge of the image
@@ -42,6 +46,25 @@ def find_background_color(image):
 
 
 if __name__ == '__main__':
+
+    """
+    Main function for the jitter remover script.
+
+    This script aligns images in a specified folder by removing jitter using phase cross-correlation and
+    saves the corrected images to an output folder.
+
+    :param str --input (-i):
+        Path to the folder containing input images in `.tif` format.
+
+    :param str --output (-o):
+        Path to the folder where the corrected images will be saved. If not specified, a `modified_images`
+        folder will be created inside the input images folder.
+
+    :returns:
+        None. Processed images are saved in the output folder.
+
+    :rtype: None
+    """
 
     # Initialize the ArgumentParser object
     parser = argparse.ArgumentParser(description='jitter remover')
