@@ -1,7 +1,15 @@
 import numpy as np
-from Trackrefiner.core.correction.action.helper import calculate_trajectory_angles, \
-    calculate_bacterial_life_history_features, calculate_angles_between_slopes
+import pandas as pd
+import os
+import glob
+from Trackrefiner.core.correction.action.helper import (calculate_trajectory_angles, \
+                                                        calculate_bacterial_life_history_features,
+                                                        calculate_angles_between_slopes, find_bacteria_neighbors,
+                                                        identify_important_columns)
 from Trackrefiner.core.correction.action.neighborAnalysis import compare_neighbor_sets
+from Trackrefiner.core.correction.action.propagateBacteriaLabels import propagate_bacteria_labels
+from Trackrefiner.core.processing.bacterialLifeHistoryAnalysis import process_bacterial_life_and_family
+from Trackrefiner.core.processing.processCellProfilerData import create_pickle_files
 
 
 def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_array, center_coord_cols,
@@ -13,7 +21,6 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
         - `id`: Unique identifier for each bacterium.
         - `divideFlag`: Whether a bacterium has divided.
         - `unexpected_end` and `unexpected_beginning`: Flags indicating unexpected lifecycle events.
-        - `daughters_index`: List of indices for daughter bacteria.
         - `division_time`: Time of division.
         - `LengthChangeRatio`: Ratio of daughter to mother length.
         - `bacteria_movement`: Distance traveled between time steps.
@@ -63,19 +70,18 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
 
     selected_rows = selected_bacteria['index'].values
 
-    df.loc[selected_rows, ["id", "divideFlag", 'Unexpected_End', 'Unexpected_Beginning', 'daughters_index',
+    df.loc[selected_rows, ["id", "divideFlag", 'Unexpected_End', 'Unexpected_Beginning',
                            'Division_TimeStep', "Neighbor_Difference_Count", "parent_id", "Length_Change_Ratio",
                            "Bacterium_Movement", "Direction_of_Motion", "TrajectoryX",
                            "TrajectoryY", "Total_Daughter_Mother_Length_Ratio", "Max_Daughter_Mother_Length_Ratio",
                            'LifeHistory', 'age', 'Motion_Alignment_Angle', 'Orientation_Angle_Between_Slopes',
-                           'prev_time_step_index', 'parent_index', 'other_daughter_index',
+                           'prev_time_step_index',
                            'Daughter_Mother_Length_Ratio', 'Prev_Bacterium_Slope',
                            'Daughter_Avg_TrajectoryX', 'Daughter_Avg_TrajectoryY']] = \
         [0,  # id
          False,  # divideFlag
          False,  # unexpected_end
          False,  # unexpected_beginning
-         '',  # daughters_index
          np.nan,  # division_time
          0,  # difference_neighbors
          np.nan,  # parent_id
@@ -91,8 +97,6 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
          np.nan,  # MotionAlignmentAngle
          np.nan,  # slope_bac_bac
          -1,  # prev_time_step_index
-         np.nan,  # parent_index
-         np.nan,  # daughter_index
          np.nan,  # daughter_mother_LengthChangeRatio
          np.nan,  # prev_bacteria_slope
          np.nan,  # avg_daughters_TrajectoryX
@@ -180,15 +184,12 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
 
     daughters_are_not_in_selected_rows = division.loc[~ division['index_2'].isin(selected_bacteria['index'].values)]
 
-    division['daughters_index'] = \
-        division.groupby(['ImageNumber_1', 'ObjectNumber_1'])['index_2'].transform(lambda x: ', '.join(x.astype(str)))
-
     division['daughter_mother_slope'] = \
         calculate_angles_between_slopes(division['Bacterium_Slope_2'].values,
                                         division['Bacterium_Slope_1'])
 
     division['Daughter_Mother_Length_Ratio'] = (division['AreaShape_MajorAxisLength_2'] /
-                                                     division['AreaShape_MajorAxisLength_1'])
+                                                division['AreaShape_MajorAxisLength_1'])
 
     mothers_df_last_time_step = division.drop_duplicates(subset='index_1', keep='first')
 
@@ -237,8 +238,8 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
                                                 on=['ImageNumber', 'ObjectNumber'], how='outer')
 
     mother_idx = division['index_1'].unique()
-    mother_cols_should_update = ['daughters_index', 'Division_TimeStep']
-    related_to_mothers_update = ['daughters_index', 'ImageNumber_2']
+    mother_cols_should_update = ['Division_TimeStep']
+    related_to_mothers_update = ['ImageNumber_2']
 
     df.loc[mother_idx, mother_cols_should_update] = mothers_df_last_time_step[related_to_mothers_update].values
 
@@ -253,20 +254,17 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
     # for daughters
     daughters_idx = division['index_2'].values
     daughter_cols_should_update = ["Direction_of_Motion", "TrajectoryX", "TrajectoryY",
-                                   'Orientation_Angle_Between_Slopes', 'Prev_Bacterium_Slope', 'parent_index',
+                                   'Orientation_Angle_Between_Slopes', 'Prev_Bacterium_Slope',
                                    'Daughter_Mother_Length_Ratio', 'prev_time_step_index']
 
     related_cols_daughter_update = ["Direction_of_Motion", 'daughters_TrajectoryX', "daughters_TrajectoryY",
-                                    'daughter_mother_slope', 'Bacterium_Slope_1', 'index_1',
+                                    'daughter_mother_slope', 'Bacterium_Slope_1',
                                     'Daughter_Mother_Length_Ratio', 'index_1']
 
     df.loc[daughters_idx, daughter_cols_should_update] = \
         division[related_cols_daughter_update].values
 
     df.loc[daughters_idx, 'prev_time_step_index'] = division['index_1'].values.astype('int64')
-
-    df.loc[daughter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
-        daughter_to_daughter['index_2_daughter2'].values
 
     # other bacteria
     other_bac_idx = selected_bacteria.loc[selected_bacteria['checked'] == False]['index'].values
@@ -386,8 +384,6 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
 
     updated_selected_rows_df['Division_TimeStep'] = \
         updated_selected_rows_df.groupby('id')['Division_TimeStep'].transform(lambda x: x.ffill().bfill())
-    updated_selected_rows_df['daughters_index'] = \
-        updated_selected_rows_df.groupby('id')['daughters_index'].transform(lambda x: x.ffill().bfill())
 
     # set age
     updated_selected_rows_df['age'] = updated_selected_rows_df.groupby('id').cumcount() + 1
@@ -396,9 +392,8 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
         updated_selected_rows_df.groupby('id')['index'].shift(1)
 
     updated_selected_rows_df['Division_TimeStep'] = updated_selected_rows_df['Division_TimeStep'].fillna(0)
-    updated_selected_rows_df['daughters_index'] = updated_selected_rows_df['daughters_index'].fillna('')
 
-    updated_selected_rows_df_cols_should_update = ['age', 'Division_TimeStep', 'daughters_index']
+    updated_selected_rows_df_cols_should_update = ['age', 'Division_TimeStep']
     df.loc[updated_selected_rows_df['index'].values, updated_selected_rows_df_cols_should_update] = \
         updated_selected_rows_df[updated_selected_rows_df_cols_should_update].values
 
@@ -434,9 +429,9 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
     if selected_rows_df_first_time_step.shape[0] > 0:
         selected_rows_df_first_time_step_idx = selected_rows_df_first_time_step['index'].values
 
-        cols_should_update = ['Motion_Alignment_Angle', 'parent_index', 'Direction_of_Motion',
+        cols_should_update = ['Motion_Alignment_Angle', 'Direction_of_Motion',
                               'TrajectoryX', 'TrajectoryY', 'Orientation_Angle_Between_Slopes', 'Prev_Bacterium_Slope',
-                              'other_daughter_index', 'Daughter_Mother_Length_Ratio', 'prev_time_step_index']
+                              'Daughter_Mother_Length_Ratio', 'prev_time_step_index']
 
         df.loc[selected_rows_df_first_time_step_idx, cols_should_update] = \
             selected_rows_df_first_time_step[cols_should_update].fillna({'prev_time_step_index': -1}).values
@@ -470,7 +465,6 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
 
 def bacteria_modification(df, source_bac, target_bac_life_history, target_frame_bacteria, neighbor_df,
                           neighbor_list_array, parent_image_number_col, parent_object_number_col, center_coord_cols):
-
     """
     Modifies bacterial tracking data by assigning target bacterium to source bacterium, either as its child or
     the same bacterium, and recalculates features to ensure consistency in the tracking data.
@@ -564,7 +558,6 @@ def bacteria_modification(df, source_bac, target_bac_life_history, target_frame_
 
 def remove_redundant_link(dataframe, incorrect_target_bac_life_history, neighbor_df, neighbor_list_array,
                           parent_image_number_col, parent_object_number_col, center_coord_cols):
-
     """
     Removes redundant or incorrect link in the bacterial tracking data by modifying the lifecycle information
     of a target bacterium.
@@ -598,3 +591,380 @@ def remove_redundant_link(dataframe, incorrect_target_bac_life_history, neighbor
         parent_object_number_col=parent_object_number_col, center_coord_cols=center_coord_cols)
 
     return dataframe
+
+
+def prepare_data(tracking_csv_path, neighbors_csv_path):
+
+    """
+    Loads and processes bacterial tracking and neighbor data for further analysis.
+
+    **Parameters:**
+    :param str tracking_csv_path:
+        Path to the CSV file containing bacterial tracking data.
+    :param str neighbors_csv_path:
+        Path to the CSV file containing bacterial neighbor relationships.
+
+    **Returns:**
+    :returns tuple: A tuple containing:
+        - pandas.DataFrame **tracking_df**: Trackrefiner's output dataframe.
+        - numpy.ndarray **original_cols**: Array of column names of Trackrefiner's output dataframe.
+        - pandas.DataFrame **neighbors_df**: Neighbor relationship data.
+        - scipy.sparse.lil_matrix **neighbor_list_array**: Precomputed array of bacterial neighbors.
+        - dict **center_coord_cols**: Dictionary mapping coordinate columns.
+        - dict **all_rel_center_coord_cols**: Dictionary of relative coordinate columns.
+        - str **image_col**: Column name for bacterial image/time step.
+        - str **object_col**: Column name for bacterial object ID.
+        - str **label_col**: Column name for bacterial labels.
+    """
+
+    trackrefiner_out_df = pd.read_csv(tracking_csv_path)
+    neighbors_df = pd.read_csv(neighbors_csv_path)
+
+    original_cols = trackrefiner_out_df.columns.values
+
+    trackrefiner_out_df = trackrefiner_out_df.rename(columns={'cellAge': 'age'})
+
+    (center_coord_cols, all_rel_center_coord_cols, parent_image_number_col, parent_object_number_col,
+     label_col) = identify_important_columns(trackrefiner_out_df)
+
+    trackrefiner_out_df['index'] = trackrefiner_out_df.index
+
+    trackrefiner_out_df['prev_time_step_index'] = trackrefiner_out_df.groupby('id')["index"].shift(1)
+
+    # now for daughters
+    merged_df = \
+        trackrefiner_out_df[
+            ['ImageNumber', 'ObjectNumber', parent_image_number_col, parent_object_number_col, 'index']].merge(
+            trackrefiner_out_df[['ImageNumber', 'ObjectNumber', 'index']],
+            left_on=[parent_image_number_col, parent_object_number_col],
+            right_on=['ImageNumber', 'ObjectNumber'], how='inner', suffixes=('_2', '_1'))
+
+    divisions = \
+        merged_df[merged_df.duplicated(subset='index_1', keep=False)][['index_1', 'index_2',
+                                                                       'ImageNumber_1', 'ObjectNumber_1',
+                                                                       'ImageNumber_2', 'ObjectNumber_2',
+                                                                       f"{parent_image_number_col}",
+                                                                       f'{parent_object_number_col}'
+                                                                       ]]
+
+    daughters_idx = divisions['index_2'].values
+    trackrefiner_out_df.loc[daughters_idx, 'prev_time_step_index'] = divisions['index_1'].values
+
+    trackrefiner_out_df['prev_time_step_index'] = trackrefiner_out_df['prev_time_step_index'].fillna(-1)
+    trackrefiner_out_df['prev_time_step_index'] = trackrefiner_out_df['prev_time_step_index'].values.astype('int64')
+
+    trackrefiner_out_df['checked'] = True
+
+    neighbor_list_array = find_bacteria_neighbors(trackrefiner_out_df, neighbors_df)
+
+    return (trackrefiner_out_df, original_cols, neighbors_df, neighbor_list_array, center_coord_cols,
+            all_rel_center_coord_cols, parent_image_number_col, parent_object_number_col, label_col)
+
+
+def remove_links(tracking_df, neighbors_df, neighbor_list_array, parent_image_number_col,
+                 parent_object_number_col, center_coord_cols, incorrect_target_bac_ids,
+                 incorrect_target_bac_time_steps):
+
+    """
+    Removes incorrect lineage links for specified bacteria by identifying their tracking history
+    and eliminating connections.
+
+    This function iterates over a list of target bacteria that have incorrect lineage assignments.
+    If a target bacterium has an associated life history recorded in the tracking data,
+    the function removes its links.
+
+    **Parameters:**
+    :param pandas.DataFrame tracking_df:
+        DataFrame containing bacterial tracking data with object IDs and time steps.
+    :param pandas.DataFrame neighbors_df:
+        DataFrame containing bacterial neighbor relationships.
+    :param nscipy.sparse.lil_matrix neighbor_list_array:
+        Array containing precomputed neighbor associations.
+    :param str parent_image_number_col:
+        Column name for the parent image number in the dataframe.
+    :param str parent_object_number_col:
+        Column name for the parent object number in the dataframe
+    :param dict center_coord_cols:
+        Dictionary specifying the column names for x and y coordinates of bacterial centers.
+        Example: {'x': 'Center_X', 'y': 'Center_Y'}
+    :param list incorrect_target_bac_ids:
+        List of bacteria IDs whose incorrect links need to be removed.
+    :param list incorrect_target_bac_time_steps:
+        List of time steps corresponding to the target bacteria.
+
+    **Returns:**
+    :returns pandas.DataFrame:
+        Updated DataFrame with removed incorrect bacterial lineage links.
+    """
+
+    temp_df = tracking_df[['ImageNumber', 'id']]
+
+    if (len(incorrect_target_bac_time_steps) == 1 or
+            (len(incorrect_target_bac_time_steps) == len(incorrect_target_bac_ids))):
+
+        for i, incorrect_target_bac_id in enumerate(incorrect_target_bac_ids):
+
+            if len(incorrect_target_bac_time_steps) > 1:
+                incorrect_target_time_step = incorrect_target_bac_time_steps[i]
+            else:
+                incorrect_target_time_step = incorrect_target_bac_time_steps[0]
+
+            incorrect_target_life_history_from_temp_df = \
+                temp_df.loc[(temp_df['id'] == incorrect_target_bac_id) &
+                            (temp_df['ImageNumber'] >= incorrect_target_time_step)]
+
+            incorrect_target_life_history = tracking_df.loc[incorrect_target_life_history_from_temp_df.index.values]
+
+            if incorrect_target_life_history.shape[0] > 0:
+
+                # remove bacteria
+                tracking_df = remove_redundant_link(tracking_df, incorrect_target_life_history,
+                                                    neighbors_df, neighbor_list_array, parent_image_number_col,
+                                                    parent_object_number_col, center_coord_cols)
+
+                tracking_df[['id', 'parent_id']] = tracking_df[['id', 'parent_id']].values.astype('int64')
+            else:
+                print(f"bacterium id: {incorrect_target_bac_id} doesn't have life history")
+
+    return tracking_df
+
+
+def create_links(tracking_df, neighbors_df, neighbor_list_array, parent_image_number_col,
+                 parent_object_number_col, center_coord_cols, source_bac_ids, source_bac_time_steps,
+                 target_bac_ids, target_bac_time_steps):
+
+    """
+    Establishes bacterial lineage links by connecting source bacteria to target bacteria
+    based on their tracking history across time steps.
+
+    This function iterates over a list of source bacteria and their corresponding target bacteria,
+    ensuring that valid lineage connections are made only if the source bacterium's time step
+    is immediately before the target bacterium's time step. If a target bacterium has a previously
+    established link, it removes the outdated link before creating a new one.
+
+    **Process:**
+        - Extracts relevant tracking information from `tracking_df`.
+        - Identifies source and target bacteria based on given IDs and time steps.
+        - Checks whether the target bacterium has an existing lineage history.
+        - Removes links of target bacterium to previous time steps.
+        - Establishes new links between source and target bacteria.
+
+    **Parameters:**
+    :param pandas.DataFrame tracking_df:
+        DataFrame containing bacterial tracking data with object IDs and time steps.
+    :param pandas.DataFrame neighbors_df:
+        DataFrame containing bacterial neighbor relationships.
+    :param scipy.sparse.lil_matrix neighbor_list_array:
+        Array containing precomputed neighbor associations.
+    :param str parent_image_number_col:
+        Column name for the parent image number in the dataframe.
+    :param str parent_object_number_col:
+        Column name for the parent object number in the dataframe
+    :param dict center_coord_cols:
+        Dictionary specifying the column names for x and y coordinates of bacterial centers.
+        Example: {'x': 'Center_X', 'y': 'Center_Y'}
+    :param list source_bac_ids:
+        List of source bacteria IDs.
+    :param list source_bac_time_steps:
+        List of time steps corresponding to source bacteria.
+    :param list target_bac_ids:
+        List of target bacteria IDs.
+    :param list target_bac_time_steps:
+        List of time steps corresponding to target bacteria.
+
+    **Returns:**
+    :returns pandas.DataFrame:
+        Updated DataFrame with newly established bacterial lineage links.
+    """
+
+    temp_df = tracking_df[['ImageNumber', 'id']]
+
+    cond1 = len(source_bac_time_steps) == len(target_bac_time_steps)
+    cond2 = len(source_bac_time_steps) == len(target_bac_time_steps) == 1
+
+    run_processing = False
+
+    if cond1:
+        if cond2:
+            if len(source_bac_ids) == 1 and len(target_bac_ids) >= 1:
+                source_bac_ids = len(target_bac_ids) * [source_bac_ids[0]]
+                source_bac_time_steps = len(target_bac_ids) * [source_bac_time_steps[0]]
+                target_bac_time_steps = len(target_bac_ids) * [target_bac_time_steps[0]]
+                run_processing = True
+
+            elif len(source_bac_ids) == len(target_bac_ids):
+
+                source_bac_time_steps = len(target_bac_ids) * [source_bac_time_steps[0]]
+                target_bac_time_steps = len(target_bac_ids) * [target_bac_time_steps[0]]
+
+                run_processing = True
+
+        else:
+            if len(source_bac_ids) == len(target_bac_ids) == len(source_bac_time_steps) == len(target_bac_time_steps):
+                run_processing = True
+
+    if run_processing:
+        for i, source_bac_id_temp in enumerate(source_bac_ids):
+
+            source_bac_time_step = source_bac_time_steps[i]
+
+            target_bac_time_step = target_bac_time_steps[i]
+            target_bac_id_temp = target_bac_ids[i]
+
+            if source_bac_time_step == (target_bac_time_step - 1):
+
+                source_bac_temp = temp_df.loc[(temp_df['id'] == source_bac_id_temp) &
+                                              (temp_df['ImageNumber'] == source_bac_time_step)]
+
+                source_bac = tracking_df.loc[source_bac_temp.index.values[0]]
+
+                target_bac_life_history_temp_df = temp_df.loc[(temp_df['id'] == target_bac_id_temp) &
+                                                              (temp_df['ImageNumber'] >= target_bac_time_step)]
+
+                if target_bac_life_history_temp_df.shape[0] > 0:
+
+                    prev_target_bac_life_history_temp_df = temp_df.loc[(temp_df['id'] == target_bac_id_temp) &
+                                                                       (temp_df['ImageNumber'] < target_bac_time_step)]
+
+                    if prev_target_bac_life_history_temp_df.shape[0] > 0:
+                        target_bac_id = \
+                            tracking_df.loc[target_bac_life_history_temp_df.index.values]['id'].values[0]
+
+                        # first remove link to prev time steps
+                        tracking_df = \
+                            remove_links(tracking_df, neighbors_df, neighbor_list_array, parent_image_number_col,
+                                         parent_object_number_col, center_coord_cols, [target_bac_id],
+                                         [target_bac_time_step])
+
+                    target_bac_life_history = tracking_df.loc[target_bac_life_history_temp_df.index.values]
+
+                    target_time_step_bacteria = tracking_df.loc[tracking_df['ImageNumber'] == target_bac_time_step]
+
+                    # create link
+                    tracking_df = bacteria_modification(tracking_df, source_bac, target_bac_life_history,
+                                                        target_time_step_bacteria, neighbors_df, neighbor_list_array,
+                                                        parent_image_number_col, parent_object_number_col,
+                                                        center_coord_cols)
+
+                    tracking_df[['id', 'parent_id']] = tracking_df[['id', 'parent_id']].values.astype('int64')
+
+                else:
+                    print(f"bacterium id: {target_bac_id_temp} doesn't have life history")
+            else:
+                print(f'source id: {source_bac_id_temp} time step: {source_bac_time_step} is not in in previous '
+                      f'time step of target bac id {target_bac_id_temp} time step: {target_bac_time_step}')
+
+    else:
+        print('error happend base on criteria')
+    return tracking_df
+
+
+def edit_bacterial_tracking(tracking_csv_path, neighbors_csv_path, raw_img_path, incorrect_target_bac_ids=None,
+                            incorrect_target_bac_time_steps=None, source_bac_ids=None,
+                            source_bac_time_steps=None, target_bac_ids=None, target_bac_time_steps=None,
+                            interval_time=None, elongation_rate_method='Average', save_pickle=False):
+
+    """
+    Processes bacterial tracking data by handling incorrect lineage links, creating new links,
+    propagating labels, and computing bacterial life history features.
+
+    This function:
+    - Loads tracking and neighbor data.
+    - Removes incorrect bacterial lineage links if specified.
+    - Creates new bacterial links between source and target bacteria if provided.
+    - Propagates bacterial labels across time steps.
+    - Computes bacterial growth metrics, including elongation rates.
+    - Saves processed data as pickle files if required.
+
+    **Parameters:**
+    :param str tracking_csv_path:
+        Path to the CSV file containing bacterial tracking data (output of Trackrefiner).
+    :param str neighbors_csv_path:
+        Path to the CSV file containing bacterial neighbor relationships.
+    :param str raw_img_path
+        Path to raw images
+    :param list incorrect_target_bac_ids:
+        List of incorrect target bacterial IDs whose lineage links need to be removed. (Default: None)
+    :param list incorrect_target_bac_time_steps:
+        List of corresponding time steps for incorrect target bacteria. (Default: None)
+    :param list source_bac_ids
+        List of source bacterial IDs for new lineage links. (Default: None)
+    :param list source_bac_time_steps:
+        List of time steps corresponding to source bacteria. (Default: None)
+    :param list target_bac_ids:
+        List of target bacterial IDs for new lineage links. (Default: None)
+    :param list target_bac_time_steps:
+        List of time steps corresponding to target bacteria. (Default: None)
+    :param float interval_time:
+        Time interval (in minutes) between consecutive frames.
+    :param str elongation_rate_method:
+        Method for calculating the elongation rate. Options:
+        - 'Average': Computes average growth rate.
+        - 'Linear Regression': Estimates growth rate using linear regression.
+    :param bool save_pickle:
+        Whether to save processed tracking data as pickle files. (Default: False)
+
+    **Returns:**
+    :returns pandas.DataFrame:
+        Processed bacterial tracking DataFrame with updated lineage links.
+    """
+
+    extensions = ('tif', 'tiff', 'jpg', 'png')
+    images_found = False
+    for ext in extensions:
+        if not images_found:
+            raw_images = sorted(glob.glob(raw_img_path + '/*.' + ext))
+            if len(raw_images) > 0:
+                images_found = True
+
+    out_dir = os.path.dirname(tracking_csv_path)
+
+    (trackrefiner_out_df, original_cols, neighbors_df, neighbor_list_array, center_coord_cols,
+     all_rel_center_coord_cols, parent_image_number_col, parent_object_number_col, label_col) = \
+        prepare_data(tracking_csv_path, neighbors_csv_path)
+
+    change_happened = False
+
+    if all(v is not None for v in (incorrect_target_bac_ids, incorrect_target_bac_time_steps)):
+        trackrefiner_out_df = remove_links(trackrefiner_out_df, neighbors_df, neighbor_list_array,
+                                           parent_image_number_col,
+                                           parent_object_number_col, center_coord_cols, incorrect_target_bac_ids,
+                                           incorrect_target_bac_time_steps)
+
+        change_happened = True
+
+    if all(v is not None for v in (source_bac_ids, source_bac_time_steps, target_bac_ids, target_bac_time_steps)):
+        trackrefiner_out_df = create_links(trackrefiner_out_df, neighbors_df, neighbor_list_array,
+                                           parent_image_number_col,
+                                           parent_object_number_col, center_coord_cols, source_bac_ids,
+                                           source_bac_time_steps,
+                                           target_bac_ids, target_bac_time_steps)
+
+        change_happened = True
+
+    if change_happened:
+
+        assigning_cell_type = False
+        cell_type_array = np.array([])
+
+        # label correction
+        trackrefiner_out_df = propagate_bacteria_labels(trackrefiner_out_df, parent_image_number_col,
+                                                        parent_object_number_col, label_col)
+
+        # process the tracking data
+        processed_df, processed_df_with_specific_cols = \
+            process_bacterial_life_and_family(trackrefiner_out_df, interval_time, elongation_rate_method,
+                                              assigning_cell_type, cell_type_array, label_col, center_coord_cols)
+
+        # final step
+        corrected_df = processed_df[original_cols]
+
+        if save_pickle:
+            create_pickle_files(processed_df_with_specific_cols, f'{out_dir}/pickle_files/',
+                                assigning_cell_type)
+
+        return corrected_df
+
+    else:
+
+        return trackrefiner_out_df
