@@ -1,7 +1,7 @@
 Key,Value
 CellProfiler_Version,4.2.6
 ChannelType_bacteria_img,Grayscale
-ImageSet_Zip_Dictionary,b'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48T01FIHhtbG5zPSJodHRwOi8vd3d3Lm9wZW5taWNyb3Njb3B5Lm9yZy9TY2hlbWFzL09NRS8yMDE2LTA2Ij48SW1hZ2UgSUQ9ImJhY3RlcmlhX2ltZyI+PFBpeGVscyBEaW1lbnNpb25PcmRlcj0iWFlDWlQiIElEPSJQaXhlbHM6YmFjdGVyaWFfaW1nIiBTaXplVD0iMSIgU2l6ZVg9IjEiIFNpemVZPSIxIj48VGlmZkRhdGEgRmlyc3RDPSIwIiBGaXJzdFQ9IjAiIEZpcnN0Wj0iMCIgSUZEPSIwIiBQbGFuZUNvdW50PSIxIj48VVVJRCBGaWxlTmFtZT0iZmlsZTovaG9tZS9hbGlyZXphL0RvY3VtZW50cy9GaW5hbC9mcmFtZXNfb3V0cHV0X3NhbmRlcl9UYW5zL21vZGlmaWVkX2ltYWdlcy9mcmFtZV9UMDAwPjxpZmZlIFRoZUM9IjAiIFRoZVQ9IjAiWj0iMCIvPjwvUHg+PC9PPD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48T01FIHhtbG5zPSJodHRwOi8vd3d3Lm9wZW5taWNyb3Njb3B5Lm9yZy9TY2hlbWFzL09NRS8yMDE2LTA2Ij48SW1hZ2UgSUQ9ImJhY3RlcmlhX2ltZyI+PFBpeGVscyBEaW1lbnNpb25PcmRlcj0iWFlDWlQiIElEPSJQaXhlbHM6YmFjdGVyaWFfaW1nIiBTaXplVD0iMSIgU2l6ZVg9IjEiIFNpemVZPSIxIj48VGlmZkRhdGEgRmlyc3RDPSIwIiBGaXJzdFQ9IjAiIEZpcnN0Wj0iMCIgSUZEPSIwIiBQbGFuZUNvdW50PSIxIj48VVVJRCBGaWxlTmFtZT0iZmlsZTovaG9tZS9hbGlyZXphL0RvY3VtZW50cy9GaW5hbC9mcmFtZXNfb3V0cHV0X3NhbmRlcl9UYW5zL21vZGlmaWVkX2ltYWdlcy9mcmFtZV9UeG1scnNpb24uMCJlbmNvRjg/T01FdHA6L3d3Lm9wU2NobS9PTUUyLTA2Ij48SW1hZ2UgSWlnPjxQaXhlbHMgbWVuZGVyVCIgSUQ9ImJhY3RlcmlhX2ltZyIgU2l6ZT0iMSIgU2l6ZVg9IjEiWT0iMSI+PFRpZmZEYXRhIEZpcnN0Qz0iMCIgRmlyc3RUPSIwIiBaPSIwIkQ9Im91bnQ9IjFVSUQgRmlhbWVpbGU6bWVpcnpvdXMvaW5hbHV0YW5fbnNvZGlmaWRfaW1hZXMvZnJhbWU='
+ImageSet_Zip_Dictionary,b'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48T01FIHhtbG5zPSJodHRwOi8vd3d3Lm9wZW5taWNyb3Njb3B5Lm9yZy9TY2hlbWFzL09NRS8yMDE2LTA2Ij48SW1hZ2UgSUQ9ImJhY3RlcmlhX2ltZyI+PFBpeGVscyBEaW1lbnNpb25PcmRlcj0iWFlDWlQiIElEPSJQaXhlbHM6YmFjdGVyaWFfaW1nIiBTaXplVD0iMSIgU2l6ZVg9IjEiIFNpemVZPSIxIj48VGlmZkRhdGEgRmlyc3RDPSIwIiBGaXJzdFQ9IjAiIEZpcnN0Wj0iMCIgSUZEPSIwIiBQbGFuZUNvdW50PSIxIj48VVVJRCBGaWxlTmFtZT0iZmlsZTovaG9tZS9hbGlyZXphL0RvY3VtZW50cy90ZXN0L21vZGlmaWVkX3Jhdy9LMTJfU2NlbmUyX0MwX1Q+PGlmZmUgVGhlPSIwIiBUaGVUPSIwIlo9IjAiLz48L1B4PjwvbWFPeG1scnNpb24xLjAiZW5jb0Y4P09NRW5zcDovd3cub3BTaG1zL09NRTItNiI+PEltYWdlIEl0ZWlnPjxQaXhlbHMgaW1lbmVyVCIgSUQ9ImJhY3RlcmlhX2ltZyIgU2l6ZT0iMSIgU2l6ZVg9IjEiWT0iMSI+PFRpZmZEYXRhIEZpcnN0Qz0iMCIgRmlyc3RUPSIwIiBaPSIwIkQ9Im50PSIxVUlEIEZpaWxlOm1laXJ6b3VzdG9kaWZpZFNjbmUyX0M='
 Pipeline_Pipeline,"CellProfiler Pipeline: http://www.cellprofiler.org
 Version:5
 DateRevision:426
@@ -189,7 +189,7 @@ SaveImages:[module_num:13|svn_version:'Unknown'|variable_revision_number:16|show
     Append a suffix to the image file name?:No
     Text to append to the image name:
     Saved file format:png
-    Output file location:Default Input Folder sub-folder|Documents/Final/frames_output_sander_Tans/CP_output/tracked_cells
+    Output file location:Default Input Folder sub-folder|Documents/test/tracked_cells
     Image bit depth:8-bit integer
     Overwrite existing files without warning?:No
     When to save:Every cycle
@@ -209,15 +209,15 @@ SaveImages:[module_num:14|svn_version:'Unknown'|variable_revision_number:16|show
     Append a suffix to the image file name?:No
     Text to append to the image name:
     Saved file format:tiff
-    Output file location:Default Input Folder sub-folder|Documents/Final/frames_output_sander_Tans/CP_output/objects
-    Image bit depth:No conversion
+    Output file location:Default Input Folder sub-folder|Documents/test/objects
+    Image bit depth:8-bit integer
     Overwrite existing files without warning?:No
     When to save:Every cycle
     Record the file and path information to the saved image?:No
     Create subfolders in the output folder?:No
     Base image folder:Elsewhere...|
     How to save the series:T (Time)
-    Save with lossless compression?:No
+    Save with lossless compression?:Yes
 
 SaveImages:[module_num:15|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the type of image to save:Image
@@ -229,7 +229,7 @@ SaveImages:[module_num:15|svn_version:'Unknown'|variable_revision_number:16|show
     Append a suffix to the image file name?:No
     Text to append to the image name:
     Saved file format:npy
-    Output file location:Default Input Folder sub-folder|Documents/Final/frames_output_sander_Tans/CP_output/objects
+    Output file location:Default Input Folder sub-folder|Documents/test/objects
     Image bit depth:8-bit integer
     Overwrite existing files without warning?:No
     When to save:Every cycle
@@ -249,7 +249,7 @@ SaveImages:[module_num:16|svn_version:'Unknown'|variable_revision_number:16|show
     Append a suffix to the image file name?:No
     Text to append to the image name:
     Saved file format:tiff
-    Output file location:Default Input Folder sub-folder|Documents/Final/frames_output_sander_Tans/CP_output/probabilities
+    Output file location:Default Input Folder sub-folder|Documents/test/probabilities
     Image bit depth:No conversion
     Overwrite existing files without warning?:No
     When to save:Every cycle
@@ -257,7 +257,7 @@ SaveImages:[module_num:16|svn_version:'Unknown'|variable_revision_number:16|show
     Create subfolders in the output folder?:No
     Base image folder:Elsewhere...|
     How to save the series:T (Time)
-    Save with lossless compression?:No
+    Save with lossless compression?:Yes
 
 ExportToSpreadsheet:[module_num:17|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the column delimiter:Comma ("","")
@@ -267,7 +267,7 @@ ExportToSpreadsheet:[module_num:17|svn_version:'Unknown'|variable_revision_numbe
     Calculate the per-image mean values for object measurements?:No
     Calculate the per-image median values for object measurements?:No
     Calculate the per-image standard deviation values for object measurements?:No
-    Output file location:Default Input Folder sub-folder|Documents/Final/frames_output_sander_Tans/CP_output
+    Output file location:Default Input Folder sub-folder|Documents/test
     Create a GenePattern GCT file?:No
     Select source of sample row name:Metadata
     Select the image to use as the identifier:None
@@ -295,4 +295,4 @@ ExportToSpreadsheet:[module_num:17|svn_version:'Unknown'|variable_revision_numbe
     File name:DATA.csv
     Use the object name for the file name?:Yes
 "
-Run_Timestamp,2024-07-28T14:40:38.788116
+Run_Timestamp,2024-02-08T21:48:15.719717
