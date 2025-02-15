@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/trackrefiner)](https://pypi.org/project/TrackRefiner/) [![Conda Latest Release](https://img.shields.io/conda/v/ingalls-lab/trackrefiner)](https://anaconda.org/ingalls-lab/trackrefiner) |
-| Meta | [![DOI](https://img.shields.io/badge/DOI-10.1101/2025.02.13.637647-blue.svg)](https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1) [![License - BSD 3-Clause](https://img.shields.io/github/license/ati-74/trackrefiner)](https://github.com/Ati-74/Trackrefiner/blob/main/LICENSE.md) |
+| Meta | [![DOI](https://img.shields.io/badge/DOI-10.1101/2025.02.13.637647-blue.svg)](https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1) [![License - BSD 3-Clause](https://img.shields.io/github/license/ingallslab/trackrefiner)](https://github.com/ingallslab/Trackrefiner/blob/main/LICENSE.md) |
 
 
 <div align="justify"> 
