@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name='TrackRefiner',
-      version='1.2.5',
+      version='1.2.7',
       description='A precision tracking tool for bacillus cell tracking',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -53,7 +53,6 @@ setup(name='TrackRefiner',
           "Programming Language :: Python :: 3.10",
           "Programming Language :: Python :: 3.11",
           "Programming Language :: Python :: 3.12",
-          "Programming Language :: Python :: 3.13",
 
           "License :: OSI Approved :: BSD License",
           "Operating System :: OS Independent"
