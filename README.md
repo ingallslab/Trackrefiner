@@ -18,14 +18,39 @@ The general pipeline of TrackRefiner is illustrated in the following figure:
 
 ![image](https://github.com/user-attachments/assets/27ab0b8c-5437-4376-80a9-13c5163ec20e)
 
+## Key Commands
+TrackRefiner provides both command-line tools and graphical interfaces for tracking refinement and manual editing of tracking results.  
+Use `-h` with commands to view available options.
+
+- **Remove jitter from dataset images:**  
+  ```
+  trackrefiner-jitter-remover
+  ```
+- **Run tracking refinement:**  
+  - **Command-Line Interface:**  
+    ```bash
+    trackrefiner-cli
+    ```
+  - **Graphical User Interface:**  
+    ```bash
+    trackrefiner-gui
+    ```
+
+- **Manual editing of tracking results:**
+```
+trackrefiner-track-editor
+```
+
+## How to Use TrackRefiner
+
 The following sections provide more details on:
-1.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Installation-Guide'>Installation Guide</a>
-2.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/How-to-Run-TrackRefiner'>How to Run TrackRefiner</a>
-3.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Tutorial'>Tutorial</a>
-4.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Reported-Feature-Explanations'>Reported Feature Explanations</a>
-5.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/TrackRefiner-Outputs'>TrackRefiner Outputs</a>
-6.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Visualizing-and-Editing-Bacterial-Tracking'>Visualizing and Editing Bacterial Tracking</a>
-7.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Developers'>Developers</a>
+1.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/Installation-Guide'>Installation Guide</a>
+2.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/How-to-Run-TrackRefiner'>How to Run TrackRefiner</a>
+3.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/Tutorial'>Tutorial</a>
+4.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/Reported-Feature-Explanations'>Reported Feature Explanations</a>
+5.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/TrackRefiner-Outputs'>TrackRefiner Outputs</a>
+6.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/Visualizing-and-Editing-Bacterial-Tracking'>Visualizing and Editing Bacterial Tracking</a>
+7.	<a href='https://github.com/ingallslab/Trackrefiner/wiki/Developers'>Developers</a>
 
 ### Citation
 If you use **TrackRefiner** in your research, please cite it using the following reference:
